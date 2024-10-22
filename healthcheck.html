@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Check</title>
+</head>
+<body>
+    <h1>Run Health Checks</h1>
+
+    <!-- "All" button to run all checks -->
+    <form action="/run_check" method="POST">
+        <button name="tags" value="all">Run All Checks</button>
+    </form>
+
+    <h3>Product-wise Check</h3>
+    <!-- Dropdown for selecting a health check YAML file -->
+    <form action="/run_check" method="POST">
+        <label for="playbook">Select Product Health Check:</label>
+        <select name="playbook">
+            {% for file in healthcheck_files %}
+                <option value="{{ file }}">{{ file }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="tags">Select Tags (Optional):</label>
+        <select name="tags" multiple>
+            {% for product in products %}
+                <option value="{{ product }}">{{ product }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Run Product Check</button>
+    </form>
+
+    <h3>Environment-wise Check</h3>
+    <!-- Dropdown for selecting an environment -->
+    <form action="/run_check" method="POST">
+        <label for="playbook">Select Environment Health Check:</label>
+        <select name="playbook">
+            {% for file in healthcheck_files %}
+                <option value="{{ file }}">{{ file }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="tags">Select Environment:</label>
+        <select name="tags" multiple>
+            {% for env in environments %}
+                <option value="{{ env }}">{{ env }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Run Environment Check</button>
+    </form>
+</body>
+</html>
