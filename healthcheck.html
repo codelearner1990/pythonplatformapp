@@ -4,51 +4,99 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Health Check</title>
+    <!-- Add Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 50px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 960px;
+        }
+        h1 {
+            margin-bottom: 40px;
+        }
+        .btn {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Run Health Checks</h1>
+    <div class="container">
+        <h1 class="text-center">Platform Health Check Dashboard</h1>
+        
+        <!-- Section for All Health Checks -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Run All Health Checks
+            </div>
+            <div class="card-body">
+                <form action="/run_check" method="POST">
+                    <input type="hidden" name="tags" value="all">
+                    <button class="btn btn-primary w-100" type="submit">Run All Checks</button>
+                </form>
+            </div>
+        </div>
 
-    <!-- "All" button to run all checks -->
-    <form action="/run_check" method="POST">
-        <button name="tags" value="all">Run All Checks</button>
-    </form>
+        <!-- Section for Product-wise Check -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Product-wise Check
+            </div>
+            <div class="card-body">
+                <form action="/run_check" method="POST">
+                    <div class="mb-3">
+                        <label for="playbook" class="form-label">Select Product Health Check</label>
+                        <select class="form-select" name="playbook" id="playbook">
+                            {% for file in healthcheck_files %}
+                                <option value="{{ file }}">{{ file }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tags" class="form-label">Select Tags (Optional)</label>
+                        <select class="form-select" name="tags" multiple>
+                            {% for product in products %}
+                                <option value="{{ product }}">{{ product }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Run Product Check</button>
+                </form>
+            </div>
+        </div>
 
-    <h3>Product-wise Check</h3>
-    <!-- Dropdown for selecting a health check YAML file -->
-    <form action="/run_check" method="POST">
-        <label for="playbook">Select Product Health Check:</label>
-        <select name="playbook">
-            {% for file in healthcheck_files %}
-                <option value="{{ file }}">{{ file }}</option>
-            {% endfor %}
-        </select>
+        <!-- Section for Environment-wise Check -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Environment-wise Check
+            </div>
+            <div class="card-body">
+                <form action="/run_check" method="POST">
+                    <div class="mb-3">
+                        <label for="playbook" class="form-label">Select Environment Health Check</label>
+                        <select class="form-select" name="playbook">
+                            {% for file in healthcheck_files %}
+                                <option value="{{ file }}">{{ file }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tags" class="form-label">Select Environment</label>
+                        <select class="form-select" name="tags" multiple>
+                            {% for env in environments %}
+                                <option value="{{ env }}">{{ env }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-info w-100">Run Environment Check</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
-        <label for="tags">Select Tags (Optional):</label>
-        <select name="tags" multiple>
-            {% for product in products %}
-                <option value="{{ product }}">{{ product }}</option>
-            {% endfor %}
-        </select>
-        <button type="submit">Run Product Check</button>
-    </form>
-
-    <h3>Environment-wise Check</h3>
-    <!-- Dropdown for selecting an environment -->
-    <form action="/run_check" method="POST">
-        <label for="playbook">Select Environment Health Check:</label>
-        <select name="playbook">
-            {% for file in healthcheck_files %}
-                <option value="{{ file }}">{{ file }}</option>
-            {% endfor %}
-        </select>
-
-        <label for="tags">Select Environment:</label>
-        <select name="tags" multiple>
-            {% for env in environments %}
-                <option value="{{ env }}">{{ env }}</option>
-            {% endfor %}
-        </select>
-        <button type="submit">Run Environment Check</button>
-    </form>
+    <!-- Bootstrap JS (Optional for dropdowns, modals, etc.) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
