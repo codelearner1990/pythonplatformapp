@@ -23,7 +23,7 @@ def strip_ansi_codes(text):
 
 import re
 
-def run_ansible_healthcheck(playbook, service_config, tags):
+def run_ansible_healthcheck(playbook, service_config, tags, cleanup_artifacts=False):
     try:
         runner = ansible_runner.run(
             private_data_dir='.',
@@ -98,6 +98,18 @@ def run_ansible_healthcheck(playbook, service_config, tags):
                         "failure_reason": failure_reason if status == "failed" else "N/A"  # Only add failure reason if failed
                     })
 
+                # Perform cleanup if the flag is set
+        if cleanup_artifacts:
+            artifacts_path = os.path.join('.', 'artifacts')
+            extravars_path = os.path.join('.', 'extravars')
+
+            if os.path.exists(artifacts_path):
+                shutil.rmtree(artifacts_path)
+                print(f"Deleted artifacts directory: {artifacts_path}")
+
+            if os.path.exists(extravars_path):
+                shutil.rmtree(extravars_path)
+                print(f"Deleted extravars directory: {extravars_path}")
         # Debugging output to print what services_results contains
         #ßprint(f"Service results: {services_results}")
 
@@ -148,7 +160,7 @@ environment_config = load_yaml('config/environments.yaml')
 tag_config = load_yaml('config/tags.yaml')  # Load tags per product
 
 # Function to load all YAML files for a product
-def load_service_config(product, environment=None):
+def load_service_config(product, environment):
     product_path = f'env/{product}/'
     
     # Dictionary to hold combined service/environment configurations
@@ -219,7 +231,7 @@ def run_check():
     tags = ','.join(selected_tags)
     
     # Run the Ansible playbook with the service configuration
-    result = run_ansible_healthcheck(selected_playbook, service_config, tags)
+    result = run_ansible_healthcheck(selected_playbook, service_config, tags, cleanup_artifacts=True)
     
     # After running the check, redirect to results page
     return render_template('results.html', results=[result])
