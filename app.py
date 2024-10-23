@@ -21,7 +21,6 @@ def strip_ansi_codes(text):
     return ansi_escape.sub('', text)
 
 
-
 def run_ansible_healthcheck(playbook, service_config, tags):
     try:
         runner = ansible_runner.run(
@@ -47,13 +46,19 @@ def run_ansible_healthcheck(playbook, service_config, tags):
             if line.startswith("TASK ["):
                 current_service = line.split('[')[1].split(']')[0].strip()  # Extract the task name (service)
             elif line.startswith("ok:") or line.startswith("failed:"):
-                # Extract URL name and URL
+                # Extract URL name and URL using regular expressions
                 task_parts = line.split("=>")
                 if len(task_parts) > 1:
-                    task_info = eval(task_parts[1].strip())  # Assuming the second part is a dict-like string
-                    url_name = task_info.get("key")
-                    url = task_info.get("value")
+                    task_info_str = task_parts[1].strip()
+
+                    # Use regex to extract 'key' and 'value'
+                    key_match = re.search(r"'key':\s*'([^']*)'", task_info_str)
+                    value_match = re.search(r"'value':\s*'([^']*)'", task_info_str)
+
+                    url_name = key_match.group(1) if key_match else "N/A"
+                    url = value_match.group(1) if value_match else "N/A"
                     status = "ok" if line.startswith("ok:") else "failed"
+
                     # Append service results
                     services_results.append({
                         "service": current_service,
@@ -62,6 +67,9 @@ def run_ansible_healthcheck(playbook, service_config, tags):
                         "status": status,
                         "failure_reason": "" if status == "ok" else "Failed"
                     })
+
+        # Debugging output to print what services_results contains
+        print(f"Service results: {services_results}")
 
         # Capture the detailed output
         result = {
@@ -74,7 +82,6 @@ def run_ansible_healthcheck(playbook, service_config, tags):
         return result
     except Exception as e:
         return {"status": "fail", "details": str(e)}
-
 
 
 # Function to load a YAML file
