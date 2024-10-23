@@ -20,9 +20,6 @@ def strip_ansi_codes(text):
     ansi_escape = re.compile(r'(?:\x1B[@-_][0-?]*[ -/]*[@-~])')
     return ansi_escape.sub('', text)
 
-
-import re
-
 def run_ansible_healthcheck(playbook, service_config, tags):
     try:
         runner = ansible_runner.run(
@@ -44,58 +41,46 @@ def run_ansible_healthcheck(playbook, service_config, tags):
         # Parse stdout to extract required information
         services_results = []
         current_service = ""
-        failure_reason = ""
         current_url_name = "N/A"
         current_url = "N/A"
         status = "ok"
+        failure_reason = ""
 
         for line in stdout_content.splitlines():
-            # Capture the service task
+            # Check if we have entered a new task (service task)
             if line.startswith("TASK ["):
-                current_service = line.split('[')[1].split(']')[0].strip()  # Extract the task name (service)
+                current_service = line.split('[')[1].split(']')[0].strip()  # Extract task name (service)
                 current_url_name = "N/A"
                 current_url = "N/A"
                 failure_reason = ""  # Reset failure reason for each task
 
-            # Handle both success (ok) and failure (failed) statuses
+            # Look for both ok and failed lines
             if "ok:" in line or "failed:" in line:
                 task_parts = line.split("=>")
                 if len(task_parts) > 1:
-                    try:
-                        task_info_str = task_parts[1].strip()
+                    task_info_str = task_parts[1].strip()
 
-                        # Use regex to extract 'key' (URL name) and 'value' (URL)
-                        key_match = re.search(r"'key':\s*'([^']*)'", task_info_str)
-                        value_match = re.search(r"'value':\s*'([^']*)'", task_info_str)
+                    # Extract 'key' (url_name) and 'value' (url) from the item dict using regex
+                    key_match = re.search(r"'key':\s*'([^']*)'", task_info_str)
+                    value_match = re.search(r"'value':\s*'([^']*)'", task_info_str)
 
-                        # Update for both success and failure
-                        if "ok:" in line:
-                            current_url_name = key_match.group(1) if key_match else "N/A"
-                            current_url = value_match.group(1) if value_match else "N/A"
-                            status = "ok"
-                        # For failed ones, capture URL from a fallback method if regex doesn't find it
-                        elif "failed:" in line:
-                            status = "failed"
-                            failure_reason = extract_failure_reason(stdout_content, line)
+                    current_url_name = key_match.group(1) if key_match else "N/A"
+                    current_url = value_match.group(1) if value_match else "N/A"
 
-                            # Fallback logic to extract URL name and URL in failure case
-                            current_url_name = key_match.group(1) if key_match else "N/A"  # URL name might still be present
-                            current_url = value_match.group(1) if value_match else find_failed_url(line)
+                    # Determine the status (success or failed)
+                    if "ok:" in line:
+                        status = "ok"
+                    elif "failed:" in line:
+                        status = "failed"
+                        failure_reason = extract_failure_reason(stdout_content, line)
 
-                            # DEBUG: Print the failure reason and the full failed output for inspection
-                            print("DEBUG: Failed Output\n", line)
-                            print("DEBUG: Full Failure Reason\n", failure_reason)
-                            
-                    except Exception as ex:
-                        failure_reason = "Parsing Error: Unable to extract URL info"
-
-                    # Append the results for both successful and failed cases
+                    # Append result for this service task
                     services_results.append({
                         "service": current_service,
                         "url_name": current_url_name,
                         "url": current_url,
                         "status": status,
-                        "failure_reason": failure_reason if status == "failed" else "N/A"  # Only add failure reason if failed
+                        "failure_reason": failure_reason if status == "failed" else "N/A"
                     })
 
         # Debugging output to print what services_results contains
@@ -127,13 +112,6 @@ def extract_failure_reason(stdout_content, failed_line):
 
     # Join the captured lines into a single failure reason message
     return " ".join(failure_reason_lines).strip() if failure_reason_lines else "Failed for unknown reason"
-
-def find_failed_url(line):
-    """Fallback function to find URL in failed cases."""
-    # Here we attempt to match a URL pattern in the failure line
-    url_match = re.search(r'(https?://[^\s]+)', line)
-    return url_match.group(1) if url_match else "N/A"
-
 
 
 
