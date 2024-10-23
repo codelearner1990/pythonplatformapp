@@ -16,13 +16,17 @@
                 <tr>
                     <th>Status</th>
                     <th>Details</th>
+                    <th>Standard Output</th>
+                    <th>Return Code</th>
                 </tr>
             </thead>
             <tbody>
                 {% for result in results %}
                 <tr class="{{ 'table-success' if result.status == 'success' else 'table-danger' }}">
                     <td>{{ result.status }}</td>
-                    <td>{{ result.details if result.details else 'No details available' }}</td>
+                    <td>{{ result.details }}</td>
+                    <td><pre>{{ result.stdout }}</pre></td>  <!-- Display stdout -->
+                    <td>{{ result.rc }}</td>  <!-- Display return code -->
                 </tr>
                 {% endfor %}
             </tbody>
