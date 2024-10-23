@@ -52,38 +52,38 @@
             </div>
         </div>
 
-        <!-- Product-wise Checks Section -->
-        <div class="card mb-4">
-            <div class="card-header bg-success text-white">
-                Product-wise Health Check
+<!-- Product-wise Checks Section -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        Product-wise Health Check
+    </div>
+    <div class="card-body">
+        <form action="/run_check" method="POST" target="_blank"> <!-- Open in new tab -->
+            <!-- Product Selection -->
+            <div class="mb-3">
+                <label for="product" class="form-label">Select Product</label>
+                <select class="form-select" name="product" id="productSelect">
+                    {% for product in products %}
+                        <option value="{{ product }}">{{ product }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            <div class="card-body">
-                <form action="/run_check" method="POST">
-                    <!-- Playbook Selection -->
-                    <div class="mb-3">
-                        <label for="playbook" class="form-label">Select Playbook</label>
-                        <select class="form-select" name="playbook" id="playbookSelect">
-                            {% for playbook in healthcheck_files %}
-                                <option value="{{ playbook }}">{{ playbook }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
 
-                    <!-- Tag Selection -->
-                    <div class="mb-3">
-                        <label for="tags" class="form-label">Select Tags (Optional)</label>
-                        <select class="form-select" name="tags" multiple>
-                            {% for tag in tag_config %}
-                                <option value="{{ tag }}">{{ tag }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <button type="submit" class="btn btn-custom w-100">Run Product Check</button>
-                </form>
+            <!-- Tag Selection -->
+            <div class="mb-3">
+                <label for="tags" class="form-label">Select Tags (Optional)</label>
+                <select class="form-select" name="tags" multiple>
+                    {% for tag in tag_config[selected_product] %}
+                        <option value="{{ tag }}">{{ tag }}</option>
+                    {% endfor %}
+                </select>
             </div>
-        </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-custom w-100">Run Product Check</button>
+        </form>
+    </div>
+</div>
 
         <!-- Environment-wise Checks Section -->
         <div class="card mb-4">
