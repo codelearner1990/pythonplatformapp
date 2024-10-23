@@ -86,15 +86,15 @@
                     <!-- Submit Button -->
                     <button type="submit" class="btn btn-custom w-100">Run Product Check</button>
                 </form>
-                <!-- Loading Indicator -->
-                <div class="loading-indicator">
+                <!-- Loading Indicator for Product Check -->
+                <div class="loading-indicator" id="loadingProductCheck">
                     <div class="spinner-border text-light" role="status">
                         <span class="sr-only">Loading...</span>
                     </div>
-                    <p>Running health checks, please wait...</p>
+                    <p>Running product health checks, please wait...</p>
                 </div>
                 <!-- Results will be displayed here -->
-                <div id="results"></div>
+                <div id="productResults"></div>
             </div>
         </div>
 
@@ -130,15 +130,15 @@
                     <!-- Submit Button -->
                     <button type="submit" class="btn btn-info w-100">Run Environment Check</button>
                 </form>
-                <!-- Loading Indicator -->
-                <div class="loading-indicator">
+                <!-- Loading Indicator for Environment Check -->
+                <div class="loading-indicator" id="loadingEnvironmentCheck">
                     <div class="spinner-border text-light" role="status">
                         <span class="sr-only">Loading...</span>
                     </div>
-                    <p>Running health checks, please wait...</p>
+                    <p>Running environment health checks, please wait...</p>
                 </div>
                 <!-- Results will be displayed here -->
-                <div id="results"></div>
+                <div id="environmentResults"></div>
             </div>
         </div>
     </div>
@@ -167,13 +167,13 @@
         });
 
         // Function to handle form submission using AJAX
-        function handleFormSubmit(formId, resultContainerId) {
+        function handleFormSubmit(formId, resultContainerId, loadingIndicatorId) {
             const form = document.getElementById(formId);
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
 
                 // Show the loading spinner
-                document.querySelector('.loading-indicator').style.display = 'block';
+                document.getElementById(loadingIndicatorId).style.display = 'block';
 
                 // Hide the results container (in case of rerun)
                 document.getElementById(resultContainerId).innerHTML = '';
@@ -187,7 +187,7 @@
                 .then(response => response.text())
                 .then(html => {
                     // Hide the loading spinner when done
-                    document.querySelector('.loading-indicator').style.display = 'none';
+                    document.getElementById(loadingIndicatorId).style.display = 'none';
 
                     // Display the results in the results div
                     document.getElementById(resultContainerId).innerHTML = html;
@@ -195,14 +195,14 @@
                 .catch(error => {
                     console.error('Error:', error);
                     // Hide the loading spinner on error
-                    document.querySelector('.loading-indicator').style.display = 'none';
+                    document.getElementById(loadingIndicatorId).style.display = 'none';
                 });
             });
         }
 
-        // Apply the form handling function for both forms
-        handleFormSubmit('productHealthCheckForm', 'results');
-        handleFormSubmit('environmentHealthCheckForm', 'results');
+        // Apply the form handling function for both forms with different result and loading areas
+        handleFormSubmit('productHealthCheckForm', 'productResults', 'loadingProductCheck');
+        handleFormSubmit('environmentHealthCheckForm', 'environmentResults', 'loadingEnvironmentCheck');
     </script>
 </body>
 </html>
