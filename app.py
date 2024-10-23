@@ -59,19 +59,22 @@ def run_ansible_healthcheck(playbook, service_config, tags):
             if "ok:" in line or "failed:" in line:
                 task_parts = line.split("=>")
                 if len(task_parts) > 1:
-                    task_info_str = task_parts[1].strip()
+                    try:
+                        task_info_str = task_parts[1].strip()
 
-                    # Use regex to extract 'key' (URL name) and 'value' (URL)
-                    key_match = re.search(r"'key':\s*'([^']*)'", task_info_str)
-                    value_match = re.search(r"'value':\s*'([^']*)'", task_info_str)
+                        # Use regex to extract 'key' (URL name) and 'value' (URL)
+                        key_match = re.search(r"'key':\s*'([^']*)'", task_info_str)
+                        value_match = re.search(r"'value':\s*'([^']*)'", task_info_str)
 
-                    current_url_name = key_match.group(1) if key_match else "N/A"
-                    current_url = value_match.group(1) if value_match else "N/A"
-                    status = "ok" if "ok:" in line else "failed"
+                        current_url_name = key_match.group(1) if key_match else "N/A"
+                        current_url = value_match.group(1) if value_match else "N/A"
+                        status = "ok" if "ok:" in line else "failed"
 
-                    # For failed tasks, attempt to extract a meaningful failure reason
-                    if status == "failed":
-                        failure_reason = extract_failure_reason(stdout_content, line)
+                        # For failed tasks, attempt to extract a meaningful failure reason
+                        if status == "failed":
+                            failure_reason = extract_failure_reason(stdout_content, line)
+                    except Exception as ex:
+                        failure_reason = "Parsing Error: Unable to extract URL info"
 
                     # Append the results for both successful and failed cases
                     services_results.append({
