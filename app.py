@@ -42,21 +42,23 @@ def run_ansible_healthcheck(playbook, service_config, tags):
         # Parse stdout to extract required information
         services_results = []
         current_service = ""
-        current_url_name = "N/A"
-        current_url = "N/A"
-        failure_reason = "N/A"
+        failure_reason = ""
 
         for line in stdout_content.splitlines():
+            # Capture the service task
             if line.startswith("TASK ["):
                 current_service = line.split('[')[1].split(']')[0].strip()  # Extract the task name (service)
+                current_url_name = "N/A"
+                current_url = "N/A"
+                failure_reason = ""  # Reset failure reason for each task
 
-            elif "ok:" in line or "failed:" in line:
-                # Extract URL name and URL using regular expressions
+            # Capture the status of the task (ok or failed)
+            if "ok:" in line or "failed:" in line:
                 task_parts = line.split("=>")
                 if len(task_parts) > 1:
                     task_info_str = task_parts[1].strip()
 
-                    # Use regex to extract 'key' and 'value'
+                    # Use regex to extract 'key' (URL name) and 'value' (URL)
                     key_match = re.search(r"'key':\s*'([^']*)'", task_info_str)
                     value_match = re.search(r"'value':\s*'([^']*)'", task_info_str)
 
@@ -64,19 +66,17 @@ def run_ansible_healthcheck(playbook, service_config, tags):
                     current_url = value_match.group(1) if value_match else "N/A"
                     status = "ok" if "ok:" in line else "failed"
 
-                    # For failed tasks, extract failure reason
+                    # For failed tasks, attempt to extract a meaningful failure reason
                     if status == "failed":
                         failure_reason = extract_failure_reason(stdout_content, line)
-                    else:
-                        failure_reason = "N/A"  # Reset failure reason for successful tasks
 
-                    # Append service results
+                    # Append the results
                     services_results.append({
-                        "service": current_service,  # Ensure the service name is not empty
+                        "service": current_service,
                         "url_name": current_url_name,
                         "url": current_url,
                         "status": status,
-                        "failure_reason": failure_reason
+                        "failure_reason": failure_reason if status == "failed" else "N/A"  # Only add failure reason if failed
                     })
 
         # Debugging output to print what services_results contains
@@ -94,7 +94,6 @@ def run_ansible_healthcheck(playbook, service_config, tags):
     except Exception as e:
         return {"status": "fail", "details": str(e)}
 
-
 def extract_failure_reason(stdout_content, failed_line):
     """Extract a meaningful failure reason from the stdout content after a failed task."""
     failure_reason_lines = []
@@ -108,7 +107,8 @@ def extract_failure_reason(stdout_content, failed_line):
             failure_reason_lines.append(line.strip())  # Add failure reason lines
 
     # Join the captured lines into a single failure reason message
-    return " ".join(failure_reason_lines).strip()
+    return " ".join(failure_reason_lines).strip() if failure_reason_lines else "Failed for unknown reason"
+
 
 
 # Function to load a YAML file
