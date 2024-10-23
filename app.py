@@ -212,29 +212,47 @@ def run_check():
     selected_product = request.form.get('product')  # Get selected product
     selected_environment = request.form.get('environment')  # Get selected environment (optional)
     selected_tags = request.form.getlist('tags')
+    all_results = []
 
-    # Get the correct healthcheck playbook for the product
-    selected_playbook = get_healthcheck_playbook(selected_product)
+    # Handle the case where "All" products are selected
+    if selected_product == "All":
+        products_to_run = product_config['products']
+    else:
+        products_to_run = [selected_product]
 
-    if not selected_playbook:
-        return render_template('results.html', results=[{
-            "status": "fail",
-            "details": f"ERROR: the playbook for product {selected_product} could not be found",
-            "stdout": "",
-            "rc": 1
-        }])
+    for product in products_to_run:
+        selected_playbook = get_healthcheck_playbook(product)
 
-    # Load the service configuration for the selected product/environment
-    service_config = load_service_config(selected_product, selected_environment)
-    
-    # Convert selected tags to comma-separated string
-    tags = ','.join(selected_tags)
-    
-    # Run the Ansible playbook with the service configuration
-    result = run_ansible_healthcheck(selected_playbook, service_config, tags, cleanup_artifacts=True)
-    
-    # After running the check, redirect to results page
-    return render_template('results.html', results=[result])
+        if not selected_playbook:
+            all_results.append({
+                "status": "fail",
+                "details": f"ERROR: the playbook for product {product} could not be found",
+                "stdout": "",
+                "rc": 1
+            })
+            continue
+
+        # Load the service configuration for the selected product/environment
+        service_config = load_service_config(product, selected_environment)
+
+        # Convert selected tags to comma-separated string
+        tags = []
+        if selected_environment:
+            tags.append(selected_environment)
+        if selected_tags:
+            tags.extend(selected_tags)
+
+        tags_string = ','.join(tags)
+
+        # Run the Ansible playbook with the service configuration and pass the product name
+        result = run_ansible_healthcheck(selected_playbook, service_config, tags_string, product_name=product, cleanup_artifacts=True)
+
+        # Append the result for this product to the list of results
+        all_results.append(result)
+
+    # Render only the results part and return as HTML to be dynamically loaded
+    return render_template('results.html', results=all_results)
+
 
 # Open results in a new tab for all products
 @app.route('/run_all_checks')
