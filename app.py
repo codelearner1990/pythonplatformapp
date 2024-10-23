@@ -61,7 +61,7 @@ def run_ansible_healthcheck(playbook, service_config, tags):
 
                     # Append service results
                     services_results.append({
-                        "service": current_service,
+                        "service": current_service,  # Ensure the service name is not empty
                         "url_name": url_name,
                         "url": url,
                         "status": status,
