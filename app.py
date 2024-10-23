@@ -55,7 +55,7 @@ def run_ansible_healthcheck(playbook, service_config, tags):
                 current_url = "N/A"
                 failure_reason = ""  # Reset failure reason for each task
 
-            # Capture the status of the task (ok or failed)
+            # Capture both success (ok) and failure (failed) statuses
             if "ok:" in line or "failed:" in line:
                 task_parts = line.split("=>")
                 if len(task_parts) > 1:
@@ -73,7 +73,7 @@ def run_ansible_healthcheck(playbook, service_config, tags):
                     if status == "failed":
                         failure_reason = extract_failure_reason(stdout_content, line)
 
-                    # Append the results
+                    # Append the results for both successful and failed cases
                     services_results.append({
                         "service": current_service,
                         "url_name": current_url_name,
@@ -111,6 +111,7 @@ def extract_failure_reason(stdout_content, failed_line):
 
     # Join the captured lines into a single failure reason message
     return " ".join(failure_reason_lines).strip() if failure_reason_lines else "Failed for unknown reason"
+
 
 
 
