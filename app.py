@@ -117,7 +117,6 @@ def extract_failure_reason(stdout_content, failed_line):
 
 
 
-
 # Function to load a YAML file
 def load_yaml(file_path):
     with open(file_path, 'r') as file:
