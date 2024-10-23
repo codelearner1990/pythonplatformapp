@@ -33,10 +33,10 @@
                 {% for result in results %}
                     {% for service_data in result.stdout %}
                     <tr class="{{ 'table-success' if service_data.status == 'ok' else 'table-danger' }}">
-                        <td>{{ service_data.service }}</td>
+                        <td>{{ service_data.service }}</td> <!-- Service Name -->
                         <td>{{ service_data.url_name }}</td>
                         <td><a href="{{ service_data.url }}" target="_blank">{{ service_data.url }}</a></td>
-                        <td>{{ service_data.status }}</td>
+                        <td>{{ service_data.status }}</td> <!-- Status -->
                         <td>{{ service_data.failure_reason }}</td>
                     </tr>
                     {% endfor %}
