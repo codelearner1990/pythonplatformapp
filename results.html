@@ -4,46 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Health Check Results</title>
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .fail {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .chart-container {
-            width: 50%;
-            margin: auto;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
         <h1 class="text-center">Health Check Results</h1>
         
-        <!-- Table to display results -->
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Product</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for result in results %}
-                <tr class="{{ 'success' if result.status == 'success' else 'fail' }}">
-                    <td>{{ result.product }}</td>
-                    <td>{{ result.status }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <!-- Pie chart to show overall health -->
+        <!-- Chart Container -->
         <div class="chart-container">
             <canvas id="healthChart"></canvas>
         </div>
@@ -59,8 +28,8 @@
                 datasets: [{
                     label: 'Health Check Status',
                     data: [
-                        {{ results|selectattr('status', 'equalto', 'success')|length }},
-                        {{ results|selectattr('status', 'equalto', 'fail')|length }}
+                        {{ results|selectattr('status', 'equalto', 'success')|list|length }},
+                        {{ results|selectattr('status', 'equalto', 'fail')|list|length }}
                     ],
                     backgroundColor: ['#28a745', '#dc3545']
                 }]
