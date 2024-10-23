@@ -59,12 +59,12 @@
             </div>
             <div class="card-body">
                 <form action="/run_check" method="POST">
-                    <!-- Product Selection -->
+                    <!-- Playbook Selection -->
                     <div class="mb-3">
-                        <label for="product" class="form-label">Select Product</label>
-                        <select class="form-select" name="product" id="productSelect">
-                            {% for product in products %}
-                                <option value="{{ product }}">{{ product }}</option>
+                        <label for="playbook" class="form-label">Select Playbook</label>
+                        <select class="form-select" name="playbook" id="playbookSelect">
+                            {% for playbook in healthcheck_files %}
+                                <option value="{{ playbook }}">{{ playbook }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -73,7 +73,7 @@
                     <div class="mb-3">
                         <label for="tags" class="form-label">Select Tags (Optional)</label>
                         <select class="form-select" name="tags" multiple>
-                            {% for tag in tag_config[selected_product] %}
+                            {% for tag in tag_config %}
                                 <option value="{{ tag }}">{{ tag }}</option>
                             {% endfor %}
                         </select>
