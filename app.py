@@ -43,8 +43,7 @@ product_config = load_yaml('config/products.yaml')
 environment_config = load_yaml('config/environments.yaml')
 tag_config = load_yaml('config/tags.yaml')  # Load tags per product
 
-
-# Function to run Ansible health check
+# Function to run Ansible health check with detailed output capture
 def run_ansible_healthcheck(playbook, service_config, tags):
     try:
         runner = ansible_runner.run(
@@ -53,10 +52,16 @@ def run_ansible_healthcheck(playbook, service_config, tags):
             extravars=service_config,
             tags=tags
         )
-        if runner.status == 'successful':
-            return {"status": "success"}
-        else:
-            return {"status": "fail", "details": runner.rc}
+        
+        # Capture the detailed output
+        result = {
+            "status": "success" if runner.status == 'successful' else "fail",
+            "stdout": runner.stdout,  # Capture stdout
+            "rc": runner.rc,  # Return code
+            "details": runner.stats if runner.stats else "No details available"  # Capture stats or details
+        }
+        
+        return result
     except Exception as e:
         return {"status": "fail", "details": str(e)}
 
