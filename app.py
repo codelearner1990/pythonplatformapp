@@ -22,11 +22,10 @@ def strip_ansi_codes(text):
 
 
 
-# Function to run Ansible health check with detailed output capture
 def run_ansible_healthcheck(playbook, service_config, tags):
     try:
         runner = ansible_runner.run(
-            private_data_dir='healthchecks',
+            private_data_dir='.',
             playbook=playbook,
             extravars=service_config,
             tags=tags
@@ -41,10 +40,33 @@ def run_ansible_healthcheck(playbook, service_config, tags):
         # Strip ANSI codes from the stdout
         stdout_content = strip_ansi_codes(stdout_content)
 
+        # Parse stdout to extract required information
+        services_results = []
+        current_service = ""
+        for line in stdout_content.splitlines():
+            if line.startswith("TASK ["):
+                current_service = line.split('[')[1].split(']')[0].strip()  # Extract the task name (service)
+            elif line.startswith("ok:") or line.startswith("failed:"):
+                # Extract URL name and URL
+                task_parts = line.split("=>")
+                if len(task_parts) > 1:
+                    task_info = eval(task_parts[1].strip())  # Assuming the second part is a dict-like string
+                    url_name = task_info.get("key")
+                    url = task_info.get("value")
+                    status = "ok" if line.startswith("ok:") else "failed"
+                    # Append service results
+                    services_results.append({
+                        "service": current_service,
+                        "url_name": url_name,
+                        "url": url,
+                        "status": status,
+                        "failure_reason": "" if status == "ok" else "Failed"
+                    })
+
         # Capture the detailed output
         result = {
             "status": "success" if runner.status == 'successful' else "fail",
-            "stdout": stdout_content,  # Properly read and stripped stdout content
+            "stdout": services_results,  # Pass the structured service results
             "rc": runner.rc,  # Return code
             "details": runner.stats if runner.stats else "No details available"  # Capture stats or details
         }
@@ -52,6 +74,7 @@ def run_ansible_healthcheck(playbook, service_config, tags):
         return result
     except Exception as e:
         return {"status": "fail", "details": str(e)}
+
 
 
 # Function to load a YAML file
