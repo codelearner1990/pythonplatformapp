@@ -44,7 +44,8 @@ def run_ansible_healthcheck(playbook, service_config, tags):
         current_service = ""
         for line in stdout_content.splitlines():
             if line.startswith("TASK ["):
-                current_service = line.split('[')[1].split(']')[0].strip()  # Extract the task name (service)
+                # Extract the task name (service)
+                current_service = line.split('[')[1].split(']')[0].strip()
             elif line.startswith("ok:") or line.startswith("failed:"):
                 # Extract URL name and URL using regular expressions
                 task_parts = line.split("=>")
@@ -59,13 +60,19 @@ def run_ansible_healthcheck(playbook, service_config, tags):
                     url = value_match.group(1) if value_match else "N/A"
                     status = "ok" if line.startswith("ok:") else "failed"
 
+                    # Capture failure reason
+                    failure_reason = ""
+                    if status == "failed":
+                        failure_reason_match = re.search(r"'msg':\s*'([^']*)'", task_info_str)
+                        failure_reason = failure_reason_match.group(1) if failure_reason_match else "Failed for unknown reason"
+
                     # Append service results
                     services_results.append({
                         "service": current_service,  # Ensure the service name is not empty
                         "url_name": url_name,
                         "url": url,
                         "status": status,
-                        "failure_reason": "" if status == "ok" else "Failed"
+                        "failure_reason": failure_reason if status == "failed" else ""
                     })
 
         # Debugging output to print what services_results contains
@@ -82,7 +89,6 @@ def run_ansible_healthcheck(playbook, service_config, tags):
         return result
     except Exception as e:
         return {"status": "fail", "details": str(e)}
-
 
 # Function to load a YAML file
 def load_yaml(file_path):
