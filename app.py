@@ -68,7 +68,7 @@ def run_ansible_healthcheck(playbook, service_config, tags):
                         key_match = re.search(r"'key':\s*'([^']*)'", task_info_str)
                         value_match = re.search(r"'value':\s*'([^']*)'", task_info_str)
 
-                        # Update only for success
+                        # Update for both success and failure
                         if "ok:" in line:
                             current_url_name = key_match.group(1) if key_match else "N/A"
                             current_url = value_match.group(1) if value_match else "N/A"
@@ -78,8 +78,8 @@ def run_ansible_healthcheck(playbook, service_config, tags):
                             status = "failed"
                             failure_reason = extract_failure_reason(stdout_content, line)
 
-                            # Try a fallback regex to capture URL even in failed cases
-                            current_url_name = key_match.group(1) if key_match else "N/A"
+                            # Fallback logic to extract URL name and URL in failure case
+                            current_url_name = key_match.group(1) if key_match else "N/A"  # URL name might still be present
                             current_url = value_match.group(1) if value_match else find_failed_url(line)
 
                             # DEBUG: Print the failure reason and the full failed output for inspection
@@ -133,6 +133,7 @@ def find_failed_url(line):
     # Here we attempt to match a URL pattern in the failure line
     url_match = re.search(r'(https?://[^\s]+)', line)
     return url_match.group(1) if url_match else "N/A"
+
 
 
 
