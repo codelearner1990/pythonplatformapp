@@ -44,8 +44,7 @@ def run_ansible_healthcheck(playbook, service_config, tags):
         current_service = ""
         for line in stdout_content.splitlines():
             if line.startswith("TASK ["):
-                # Extract the task name (service)
-                current_service = line.split('[')[1].split(']')[0].strip()
+                current_service = line.split('[')[1].split(']')[0].strip()  # Extract the task name (service)
             elif line.startswith("ok:") or line.startswith("failed:"):
                 # Extract URL name and URL using regular expressions
                 task_parts = line.split("=>")
@@ -60,11 +59,11 @@ def run_ansible_healthcheck(playbook, service_config, tags):
                     url = value_match.group(1) if value_match else "N/A"
                     status = "ok" if line.startswith("ok:") else "failed"
 
-                    # Capture failure reason
+                    # For failed tasks, we need to extract the failure reason
                     failure_reason = ""
                     if status == "failed":
-                        failure_reason_match = re.search(r"'msg':\s*'([^']*)'", task_info_str)
-                        failure_reason = failure_reason_match.group(1) if failure_reason_match else "Failed for unknown reason"
+                        # Search for a specific error message or content within the following lines
+                        failure_reason = extract_failure_reason(stdout_content, line)
 
                     # Append service results
                     services_results.append({
@@ -72,7 +71,7 @@ def run_ansible_healthcheck(playbook, service_config, tags):
                         "url_name": url_name,
                         "url": url,
                         "status": status,
-                        "failure_reason": failure_reason if status == "failed" else ""
+                        "failure_reason": failure_reason if failure_reason else "Failed for unknown reason"
                     })
 
         # Debugging output to print what services_results contains
@@ -89,6 +88,22 @@ def run_ansible_healthcheck(playbook, service_config, tags):
         return result
     except Exception as e:
         return {"status": "fail", "details": str(e)}
+
+def extract_failure_reason(stdout_content, failed_line):
+    """Extract a meaningful failure reason from the stdout content after a failed task."""
+    failure_reason_lines = []
+    capture = False
+    for line in stdout_content.splitlines():
+        if line == failed_line:
+            capture = True  # Start capturing failure reason lines after the failed task line
+        elif capture:
+            if line.startswith("TASK [") or line.startswith("ok:") or line.startswith("failed:"):
+                break  # Stop capturing if a new task starts
+            failure_reason_lines.append(line.strip())  # Add failure reason lines
+
+    # Join the captured lines into a single failure reason message
+    return " ".join(failure_reason_lines).strip()
+
 
 # Function to load a YAML file
 def load_yaml(file_path):
