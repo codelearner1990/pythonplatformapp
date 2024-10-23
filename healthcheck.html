@@ -52,38 +52,36 @@
             </div>
         </div>
 
-<!-- Product-wise Checks Section -->
-<div class="card mb-4">
-    <div class="card-header bg-success text-white">
-        Product-wise Health Check
-    </div>
-    <div class="card-body">
-        <form action="/run_check" method="POST" target="_blank"> <!-- Open in new tab -->
-            <!-- Product Selection -->
-            <div class="mb-3">
-                <label for="product" class="form-label">Select Product</label>
-                <select class="form-select" name="product" id="productSelect">
-                    {% for product in products %}
-                        <option value="{{ product }}">{{ product }}</option>
-                    {% endfor %}
-                </select>
+        <!-- Product-wise Checks Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                Product-wise Health Check
             </div>
+            <div class="card-body">
+                <form action="/run_check" method="POST" target="_blank"> <!-- Open in a new tab -->
+                    <!-- Product Selection -->
+                    <div class="mb-3">
+                        <label for="product" class="form-label">Select Product</label>
+                        <select class="form-select" name="product" id="productSelect">
+                            {% for product in products %}
+                                <option value="{{ product }}">{{ product }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-            <!-- Tag Selection -->
-            <div class="mb-3">
-                <label for="tags" class="form-label">Select Tags (Optional)</label>
-                <select class="form-select" name="tags" multiple>
-                    {% for tag in tag_config[selected_product] %}
-                        <option value="{{ tag }}">{{ tag }}</option>
-                    {% endfor %}
-                </select>
+                    <!-- Tag Selection -->
+                    <div class="mb-3">
+                        <label for="tags" class="form-label">Select Tags (Optional)</label>
+                        <select class="form-select" name="tags" multiple>
+                            <!-- Tags will be dynamically populated based on product -->
+                        </select>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-custom w-100">Run Product Check</button>
+                </form>
             </div>
-
-            <!-- Submit Button -->
-            <button type="submit" class="btn btn-custom w-100">Run Product Check</button>
-        </form>
-    </div>
-</div>
+        </div>
 
         <!-- Environment-wise Checks Section -->
         <div class="card mb-4">
@@ -91,7 +89,7 @@
                 Environment-wise Health Check
             </div>
             <div class="card-body">
-                <form action="/run_check" method="POST">
+                <form action="/run_check" method="POST" target="_blank"> <!-- Open in a new tab -->
                     <!-- Environment Selection -->
                     <div class="mb-3">
                         <label for="environment" class="form-label">Select Environment</label>
@@ -123,5 +121,26 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript to dynamically load tags based on product selection -->
+    <script>
+        document.getElementById('productSelect').addEventListener('change', function () {
+            var selectedProduct = this.value;
+            fetch(`/get_tags?product=${selectedProduct}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tagsDropdown = document.querySelector('select[name="tags"]');
+                    tagsDropdown.innerHTML = '';  // Clear existing tags
+
+                    // Add new tags
+                    data.tags.forEach(tag => {
+                        const option = document.createElement('option');
+                        option.value = tag;
+                        option.textContent = tag;
+                        tagsDropdown.appendChild(option);
+                    });
+                });
+        });
+    </script>
 </body>
 </html>
