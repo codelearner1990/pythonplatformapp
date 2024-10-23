@@ -95,8 +95,8 @@
                         <label for="environment" class="form-label">Select Environment</label>
                         <select class="form-select" name="environment" id="environmentSelect">
                             <option value="">Select Environment</option>
-                            {% for env in environments %}
-                                <option value="{{ env }}">{{ env }}</option>
+                            {% for environment in environments %}
+                                <option value="{{ environment }}">{{ environment }}</option>
                             {% endfor %}
                         </select>
                     </div>
