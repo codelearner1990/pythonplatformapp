@@ -43,6 +43,9 @@ def run_ansible_healthcheck(playbook, service_config, tags):
         services_results = []
         current_service = ""
         failure_reason = ""
+        current_url_name = "N/A"
+        current_url = "N/A"
+        status = "ok"
 
         for line in stdout_content.splitlines():
             # Capture the service task
