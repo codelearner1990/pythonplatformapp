@@ -1,10 +1,16 @@
 import os
 import yaml
+import re
 from flask import Flask, render_template, request, redirect, url_for
 import ansible_runner
 import webbrowser
 
 app = Flask(__name__)
+
+# Function to strip ANSI codes
+def strip_ansi_codes(text):
+    ansi_escape = re.compile(r'(?:\x1B[@-_][0-?]*[ -/]*[@-~])')
+    return ansi_escape.sub('', text)
 
 # Function to list all YAML files in the healthchecks folder
 def list_healthcheck_files():
@@ -52,15 +58,24 @@ def run_ansible_healthcheck(playbook, service_config, tags):
             extravars=service_config,
             tags=tags
         )
-        
+
+        # Read the stdout file to capture output
+        stdout_content = ""
+        if runner.stdout:
+            with open(runner.stdout.name, 'r') as f:
+                stdout_content = f.read()
+
+        # Strip ANSI codes from the stdout
+        stdout_content = strip_ansi_codes(stdout_content)
+
         # Capture the detailed output
         result = {
             "status": "success" if runner.status == 'successful' else "fail",
-            "stdout": runner.stdout,  # Capture stdout
+            "stdout": stdout_content,  # Properly read and stripped stdout content
             "rc": runner.rc,  # Return code
             "details": runner.stats if runner.stats else "No details available"  # Capture stats or details
         }
-        
+
         return result
     except Exception as e:
         return {"status": "fail", "details": str(e)}
